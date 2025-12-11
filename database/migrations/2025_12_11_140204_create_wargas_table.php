@@ -13,6 +13,16 @@ return new class extends Migration
     {
         Schema::create('wargas', function (Blueprint $table) {
             $table->id();
+            $table->string('nama');
+            $table->string('nik', 16)->unique()->nullable();
+            $table->string('kk', 16)->nullable();
+            $table->string('jenis_kelamin')->nullable();
+            $table->date('tanggal_lahir')->nullable();
+            $table->string('alamat')->nullable();
+            $table->string('no_rumah');
+            $table->string('blok_rumah');
+            $table->string('telepon')->nullable();
+            $table->string('foto_ktp')->nullable();
             $table->timestamps();
         });
     }
