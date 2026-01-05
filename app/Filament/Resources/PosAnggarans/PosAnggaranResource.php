@@ -2,21 +2,23 @@
 
 namespace App\Filament\Resources\PosAnggarans;
 
-use App\Filament\Resources\PosAnggarans\Pages\CreatePosAnggaran;
+use UnitEnum;
+use BackedEnum;
+use Filament\Tables\Table;
+use App\Models\PosAnggaran;
+use Filament\Schemas\Schema;
+use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\PosAnggarans\Pages\EditPosAnggaran;
 use App\Filament\Resources\PosAnggarans\Pages\ListPosAnggarans;
+use App\Filament\Resources\PosAnggarans\Pages\CreatePosAnggaran;
 use App\Filament\Resources\PosAnggarans\Schemas\PosAnggaranForm;
 use App\Filament\Resources\PosAnggarans\Tables\PosAnggaransTable;
-use App\Models\PosAnggaran;
-use BackedEnum;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Table;
-use UnitEnum;
 
 class PosAnggaranResource extends Resource
 {
+
     protected static ?string $model = PosAnggaran::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -47,5 +49,9 @@ class PosAnggaranResource extends Resource
             'create' => CreatePosAnggaran::route('/create'),
             'edit' => EditPosAnggaran::route('/{record}/edit'),
         ];
+    }
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->withSum('mutasiDanas', 'nominal');
     }
 }

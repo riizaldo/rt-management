@@ -25,6 +25,13 @@ class PosAnggaransTable
                     ->badge()
                     ->color('info')
                     ->searchable(),
+
+                TextColumn::make('mutasi_danas_sum_nominal')
+                    ->label('Total Dana Terkumpul')
+                    ->money('IDR') // Format Rupiah otomatis
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('success'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
