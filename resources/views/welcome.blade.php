@@ -20,7 +20,7 @@
 
     <div class="mb-10 text-center">
         <h1 class="mb-2 text-3xl font-bold text-white">Transparansi Keuangan RT</h1>
-        <p class="text-gray-400">Laporan realtime kas dan alokasi dana warga</p>
+        <p class="text-gray-400">Laporan kas dan alokasi dana warga DAI Persada Residence 2</p>
     </div>
 
     <div class="w-full max-w-6xl space-y-8">
