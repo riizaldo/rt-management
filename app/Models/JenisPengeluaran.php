@@ -11,4 +11,9 @@ class JenisPengeluaran extends Model
         'keterangan',
         'is_active',
     ];
+
+    public function posAnggaran()
+    {
+        return $this->belongsTo(PosAnggaran::class);
+    }
 }

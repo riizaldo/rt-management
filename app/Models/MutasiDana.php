@@ -18,4 +18,9 @@ class MutasiDana extends Model
     {
         return $this->belongsTo(Iuran::class);
     }
+
+    public function pengeluaran()
+    {
+        return $this->belongsTo(Pengeluaran::class);
+    }
 }
