@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Pengeluarans\Schemas;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
 
 class PengeluaranForm
 {
@@ -12,9 +13,10 @@ class PengeluaranForm
     {
         return $schema
             ->components([
-                TextInput::make('jenis_pengeluaran_id')
-                    ->required()
-                    ->numeric(),
+                select::make('jenis_pengeluaran_id')
+                    ->relationship('jenisPengeluaran', 'nama')
+                    ->label('Jenis Pengeluaran')
+                    ->required(),
                 TextInput::make('nominal')
                     ->required()
                     ->numeric(),
