@@ -103,7 +103,7 @@ Ikuti langkah-langkah ini untuk menjalankan project di komputer lokal:
 
 ## 📖 Panduan Penggunaan Singkat
 
--   A. Mengatur Alokasi Dana (Dropping)
+A. Mengatur Alokasi Dana (Dropping)
 
     Masuk ke Admin Panel > Menu Pos Anggaran. Buat pos baru (misal: Kas Operasional, Dana Sosial).
 
@@ -115,7 +115,7 @@ Ikuti langkah-langkah ini untuk menjalankan project di komputer lokal:
 
     Hasil: Saat warga membayar iuran (Status diubah jadi Lunas), sistem otomatis mencatat mutasi dana masuk ke pos tersebut.
 
--   B. Monitoring Pembayaran
+B. Monitoring Pembayaran
 
     Masuk ke menu Monitoring Iuran.
 
@@ -123,7 +123,7 @@ Ikuti langkah-langkah ini untuk menjalankan project di komputer lokal:
 
     Tabel akan menampilkan checklist status pembayaran per bulan (Jan-Des) untuk setiap warga.
 
--   C. Mencatat Pengeluaran
+C. Mencatat Pengeluaran
 
         Masuk ke menu Jenis Pengeluaran. Tentukan sumber dananya (misal: Beli ATK mengambil dana dari Kas Operasional).
 
@@ -133,4 +133,4 @@ Ikuti langkah-langkah ini untuk menjalankan project di komputer lokal:
 
     🤝 Kontribusi
 
-Kontribusi sangat diterima! Silakan Fork repositori ini dan buat Pull Request untuk fitur baru atau perbaikan bug.
+        Kontribusi sangat diterima! Silakan Fork repositori ini dan buat Pull Request untuk fitur baru atau perbaikan bug.
