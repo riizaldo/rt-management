@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Iuran;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -21,4 +22,9 @@ class Warga extends Model
         'telepon',
         'foto_ktp',
     ];
+
+    public function iurans()
+    {
+        return $this->hasMany(Iuran::class);
+    }
 }
