@@ -6,50 +6,32 @@ use Carbon\Carbon;
 use App\Models\Warga;
 use App\Models\JenisIuran;
 use Filament\Tables\Table;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection; // <--- Import ini
+use Filament\Actions\Action;
 
 class MonitoringIuransTable
 {
     public static function configure(Table $table): Table
     {
-        // --- 1. SIAPKAN ARRAY KOLOM DULU ---
         $columns = [];
 
-        // Kolom Nama (Sticky)
-        $columns[] = TextColumn::make('nama')
-            ->label('Nama Warga')
-            ->searchable()
-            ->sortable()
-            ->weight('bold');
+        // 1. Kolom Nama, Blok, No, Telepon
+        $columns[] = TextColumn::make('nama')->label('Nama Warga')->searchable()->sortable()->weight('bold');
+        $columns[] = TextColumn::make('blok_rumah')->label('Blok')->searchable()->sortable()->weight('bold');
+        $columns[] = TextColumn::make('no_rumah')->label('No')->searchable()->sortable()->weight('bold');
+        $columns[] = TextColumn::make('telepon')->label('Telepon')->searchable()->sortable()->weight('bold');
 
-        $columns[] = TextColumn::make('blok_rumah')
-            ->label('Blok Rumah')
-            ->searchable()
-            ->sortable()
-            ->weight('bold');
-        $columns[] = TextColumn::make('no_rumah')
-            ->label('No Rumah')
-            ->searchable()
-            ->sortable()
-            ->weight('bold');
-
-        $columns[] = TextColumn::make('telepon')
-            ->label('Telepon')
-            ->searchable()
-            ->sortable()
-            ->weight('bold');
-
-        // Loop Bulan 1-12
+        // 2. Loop Kolom Bulan 1-12
         foreach (range(1, 12) as $bulan) {
-            $namaBulan = Carbon::create()->month($bulan)->translatedFormat('M'); // Jan, Feb...
+            $namaBulan = Carbon::create()->month($bulan)->translatedFormat('M');
 
             $columns[] = IconColumn::make('bulan_' . $bulan)
                 ->label($namaBulan)
@@ -59,33 +41,34 @@ class MonitoringIuransTable
                 ->trueColor('success')
                 ->falseColor('gray')
                 ->boolean()
-                // Logic pengecekan lunas/belum
                 ->state(function (Warga $record, $livewire) use ($bulan) {
                     $filterData = $livewire->tableFilters;
-
                     $tahun = $filterData['tahun']['value'] ?? now()->year;
                     $jenisIuranId = $filterData['jenis_iuran']['value'] ?? null;
 
                     if (!$jenisIuranId) return false;
 
-                    // Cek data di collection yang sudah di-load
-                    $iuran = $record->iurans->first(function ($item) use ($bulan, $tahun, $jenisIuranId) {
+                    // Cek status lunas di collection yang sudah di-load
+                    return (bool) $record->iurans->first(function ($item) use ($bulan, $tahun, $jenisIuranId) {
                         return $item->bulan == $bulan
                             && $item->tahun == $tahun
                             && $item->jenis_iuran_id == $jenisIuranId
                             && $item->status == 'lunas';
                     });
-
-                    return (bool) $iuran;
                 });
         }
 
-        // --- 2. RETURN TABLE DENGAN KOLOM YANG SUDAH DISIAPKAN ---
         return $table
-            // Penting: Load relasi biar kencang
-            ->query(Warga::query()->with('iurans'))
+            // 3. Query Utama (Ditambah Order By agar rapi saat dicetak)
+            ->query(
+                Warga::query()
+                    ->with('iurans')
+                    ->orderBy('blok_rumah', 'asc')
+                    ->orderBy('no_rumah', 'asc')
+            )
             ->columns($columns)
 
+            // 4. Filter Tahun & Jenis Iuran
             ->filters([
                 SelectFilter::make('tahun')
                     ->options(function () {
@@ -94,25 +77,67 @@ class MonitoringIuransTable
                         return array_combine($years, $years);
                     })
                     ->default(now()->year)
-                    ->selectablePlaceholder(false)->query(fn(Builder $query) => $query),
+                    ->selectablePlaceholder(false)
+                    // PENTING: Override query agar tidak filter tabel wargas
+                    ->query(fn(Builder $query) => $query),
 
-                // Filter Jenis Iuran
                 SelectFilter::make('jenis_iuran')
                     ->options(JenisIuran::where('is_active', true)->pluck('nama', 'id'))
                     ->default(fn() => JenisIuran::where('is_active', true)->first()?->id)
-                    ->selectablePlaceholder(false)->query(fn(Builder $query) => $query),
+                    ->selectablePlaceholder(false)
+                    // PENTING: Override query agar tidak filter tabel wargas
+                    ->query(fn(Builder $query) => $query),
             ])
-            ->filtersLayout(FiltersLayout::AboveContent) // Agar filter muncul di atas tabel
+            ->filtersLayout(FiltersLayout::AboveContent)
+            ->headerActions([
+                Action::make('download_pdf_all')
+                    ->label('Download PDF')
+                    ->icon('heroicon-o-printer')
+                    ->color('primary')
+                    ->action(function ($livewire) {
+                        // 1. Ambil Nilai Filter
+                        $filterData = $livewire->tableFilters;
+                        $tahun = $filterData['tahun']['value'] ?? now()->year;
 
-            // --- INI BAGIAN BAWAAN ANDA ---
-            ->actions([ // Saya ganti recordActions jadi actions (standar Table)
-                // ViewAction::make(),
-                // EditAction::make(), // Matikan edit jika ini cuma monitoring
+                        $defaultJenis = JenisIuran::where('is_active', true)->first();
+                        $jenisIuranId = $filterData['jenis_iuran']['value'] ?? $defaultJenis?->id;
+
+                        $namaJenis = $defaultJenis?->nama;
+                        if ($filterData['jenis_iuran']['value']) {
+                            $namaJenis = JenisIuran::find($jenisIuranId)?->nama;
+                        }
+
+                        // 2. Ambil SEMUA Warga (Sesuai urutan tabel)
+                        // Kita load relasi iuran khusus tahun/jenis yang dipilih
+                        $wargas = Warga::query()
+                            ->with(['iurans' => function ($q) use ($tahun, $jenisIuranId) {
+                                $q->where('tahun', $tahun)
+                                    ->where('jenis_iuran_id', $jenisIuranId);
+                            }])
+                            ->orderBy('blok_rumah', 'asc')
+                            ->orderBy('no_rumah', 'asc')
+                            ->get();
+
+                        // 3. Render PDF
+                        $pdf = Pdf::loadView('pdf.monitoring-iuran', [
+                            'wargas' => $wargas,
+                            'tahun' => $tahun,
+                            'nama_iuran' => $namaJenis,
+                            'jenis_iuran_id' => $jenisIuranId
+                        ])->setPaper('a4', 'landscape');
+
+                        // 4. Download
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'Laporan-Iuran-' . $tahun . '.pdf');
+                    }),
             ])
-            ->bulkActions([ // Saya ganti toolbarActions jadi bulkActions (standar Table)
-                BulkActionGroup::make([
-                    // DeleteBulkAction::make(), // Matikan delete jika ini cuma monitoring
-                ]),
+            // 5. Actions (Kosongkan jika hanya monitoring)
+            ->actions([])
+
+            // 6. Bulk Actions (Tempat Tombol Download PDF)
+            ->bulkActions([
+                BulkActionGroup::make([]),
             ]);
     }
 }
