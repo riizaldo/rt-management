@@ -30,6 +30,17 @@ class MonitoringIuransTable
             ->sortable()
             ->weight('bold');
 
+        $columns[] = TextColumn::make('blok_rumah')
+            ->label('Blok Rumah')
+            ->searchable()
+            ->sortable()
+            ->weight('bold');
+        $columns[] = TextColumn::make('no_rumah')
+            ->label('No Rumah')
+            ->searchable()
+            ->sortable()
+            ->weight('bold');
+
         $columns[] = TextColumn::make('telepon')
             ->label('Telepon')
             ->searchable()
