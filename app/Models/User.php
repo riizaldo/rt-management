@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Panel;
 
 class User extends Authenticatable
 {
@@ -44,5 +45,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Contoh logika: Hanya email tertentu atau yang sudah verifikasi yang bisa masuk
+        // return $this->email === 'admin@domain.com';
+
+        // Atau return true jika ingin SEMUA user yang login bisa akses (Hati-hati!)
+        return true;
     }
 }
