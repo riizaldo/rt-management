@@ -30,6 +30,12 @@ class MonitoringIuransTable
             ->sortable()
             ->weight('bold');
 
+        $columns[] = TextColumn::make('telepon')
+            ->label('Telepon')
+            ->searchable()
+            ->sortable()
+            ->weight('bold');
+
         // Loop Bulan 1-12
         foreach (range(1, 12) as $bulan) {
             $namaBulan = Carbon::create()->month($bulan)->translatedFormat('M'); // Jan, Feb...
