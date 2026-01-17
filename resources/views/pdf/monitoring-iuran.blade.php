@@ -161,7 +161,7 @@
 
                 <td>
                     @if($lunas)
-                    <span class="status-lunas">✔</span>
+                    <span class="status-lunas">v</span>
                     @else
                     <span class="status-belum">-</span>
                     @endif
