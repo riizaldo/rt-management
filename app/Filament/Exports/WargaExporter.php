@@ -29,7 +29,7 @@ class WargaExporter extends Exporter
 
     public function getFileName(Export $export): string
     {
-        return "data-warga-{$export->getKey()}.xlsx";
+        return "data-warga-dai-persada-2.xlsx";
     }
 
     public function getFormats(): array
