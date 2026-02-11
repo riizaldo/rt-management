@@ -16,6 +16,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection; // <--- Import ini
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Illuminate\Support\Facades\Blade;
 
 class MonitoringIuransTable
 {
@@ -90,6 +92,46 @@ class MonitoringIuransTable
             ])
             ->filtersLayout(FiltersLayout::AboveContent)
             ->headerActions([
+                Action::make('cetak_pdf')
+                    ->label('Cetak Format Paraf (PDF)')
+                    ->icon('heroicon-o-printer')
+                    ->color('danger')
+                    ->form([
+                        Select::make('tahun')
+                            ->label('Pilih Tahun')
+                            ->options(function () {
+                                $now = now()->year;
+                                return array_combine(range($now - 2, $now + 2), range($now - 2, $now + 2));
+                            })
+                            ->default(now()->year)
+                            ->required(),
+
+                        Select::make('jenis_iuran_id')
+                            ->label('Jenis Iuran')
+                            ->options(JenisIuran::where('is_active', true)->pluck('nama', 'id'))
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        // Ambil data Jenis Iuran
+                        $jenisIuran = JenisIuran::find($data['jenis_iuran_id']);
+
+                        // Ambil semua data warga diurutkan berdasarkan Blok dan Nomor
+                        $wargas = Warga::orderBy('blok_rumah')->orderBy('no_rumah')->get();
+
+                        // Render View ke PDF
+                        $pdf = Pdf::loadView('pdf.iuran-bulanan', [
+                            'wargas' => $wargas,
+                            'tahun' => $data['tahun'],
+                            'jenisIuran' => $jenisIuran,
+                        ])->setPaper('a4', 'portrait'); // Set ukuran kertas A4 Portrait
+
+                        // Download File PDF
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'Format_Paraf_Iuran_' . $jenisIuran->nama . '_' . $data['tahun'] . '.pdf');
+                    }),
+
+
                 Action::make('download_pdf_all')
                     ->label('Download PDF')
                     ->icon('heroicon-o-printer')
